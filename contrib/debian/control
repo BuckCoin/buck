@@ -1,0 +1,22 @@
+Source: buck
+Section: utils
+Priority: optional
+Maintainer: buck team <team@buck.red>
+Homepage: https://buck.red
+Build-Depends: autoconf, automake, bsdmainutils, build-essential,
+ git, g++-multilib, libc6-dev, libtool,
+ m4, ncurses-dev, pkg-config, python,
+ unzip, wget, zlib1g-dev
+Vcs-Git: https://github.com/buckcoin/buck.git
+Vcs-Browser: https://github.com/buckcoin
+
+Package: buck
+Version: 1.0.3
+Depends: ${shlibs:Depends}
+Architecture: all
+Description: HTTPS for money.
+ Based on Bitcoin's & Zcash code, it intends to offer a far higher standard
+ of privacy and anonymity through a sophisticiated zero-knowledge
+ proving scheme which preserves confidentiality of transaction metadata.
+ This package provides the daemon, zcashd, and the CLI tool,
+ zcash-cli, to interact with the daemon.
