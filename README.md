@@ -4,8 +4,8 @@
 
 BUCK
 
-Project site: http://Buck.red 
-Block Explorer: http://Explorer.Buck.red 
+Project site: https://Buck.red 
+Block Explorer: https://Explorer.Buck.red 
 
 
 - Type: Cryptocurrency
@@ -27,8 +27,8 @@ Equihash algorithm.
 You can use your Desktop PC to mine Buck. Most profitable is GPU mining.
 
 ## Roadmap
-- Windows build
-- Windows GUI wallet
+- Windows build - (COMPLETED)
+- Windows GUI wallet - (COMPLETED)
 
 ### Ports:
 - RPC port: 5739
@@ -73,6 +73,7 @@ addnode=159.89.40.161
 addnode=139.59.111.53
 addnode=45.55.195.233
 addnode=138.68.95.165
+addnode=18.216.125.20
 # To save this new file, hit CTRL-X, then Y to save new file.
 # Change back to your home folder
 cd ..
