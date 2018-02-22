@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     BOOST_FOREACH(CTransaction *tx, txFirst)
         delete tx;
 
-    fCheckpointsEnabled = false;
+    fCheckpointsEnabled = true;
     fCoinbaseEnforcedProtectionEnabled = true;
 }
 

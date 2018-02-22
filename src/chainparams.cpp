@@ -127,12 +127,14 @@ public:
             boost::assign::map_list_of
             ( 0, uint256S("0x942b9449756c3f4d949c50358358de6a4f14f7d8b2b8bfd33ba5b7dcc0b9373b"))
             ( 2500, uint256S("0x0002f370170188a0649583b93a5af30e30022936ae5e43b15a39c1f4a7547aa2"))
-            ( 6000, uint256S("0x00000078dc22f3b307b80a74dd1b001fda29f0d23661585506053c8bce4c4162")),
-            1517275831,     // * UNIX timestamp of last checkpoint block
-            11841,         // * total number of transactions between genesis and last checkpoint
-                            //   (the tx=... number in the SetBestChain debug.log lines)
-            1136.736        // * estimated number of transactions per day after checkpoint
-                            //   total number of tx / (checkpoint block height / (24 * 24))
+            ( 6000, uint256S("0x00000078dc22f3b307b80a74dd1b001fda29f0d23661585506053c8bce4c4162"))
+            ( 10000, uint256S("0x000000a1231c242c8a542f200686b7c49b7cd4b745c6658cae028a57f9aa39e8"))
+            ( 19500, uint256S("0x000000284fb4980f0a6cf9a51474e7e9dd9d91d2c5fbe5ebc884aafe66ddab83")),						
+            1519324442,       // * UNIX timestamp of last checkpoint block
+            51705,            // * total number of transactions between genesis and last checkpoint
+                              //   (the tx=... number in the SetBestChain debug.log lines)
+            1527.28615384615  // * estimated number of transactions per day after checkpoint
+                              //   total number of tx / (checkpoint block height / (24 * 24))
         };
 
         // Founders reward script expects a vector of 2-of-3 multisig addresses
