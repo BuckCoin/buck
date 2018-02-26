@@ -1,4 +1,4 @@
-!BUCK(https://i.imgur.com/RXp7QTz.png)
+![BUCK](https://i.imgur.com/RXp7QTz.png)
 
 # Buck - The Future of Cryptocurrency
 
