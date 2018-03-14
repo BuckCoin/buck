@@ -77,6 +77,14 @@ addnode=139.59.111.53
 addnode=45.55.195.233
 addnode=138.68.95.165
 addnode=18.216.125.20
+addnode=54.211.59.227
+addnode=104.31.64.31
+addnode=104.27.142.97
+addnode=142.44.143.182
+addnode=80.211.255.12
+addnode=18.194.142.46
+addnode=89.47.163.190
+addnode=35.194.186.70
 # To save this new file, hit CTRL-X, then Y to save new file.
 # Change back to your home folder
 cd ..
