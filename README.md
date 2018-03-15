@@ -74,8 +74,7 @@ nano buck.conf
 # Insert the following into the new buck.conf file 
 addnode=159.89.40.161
 addnode=139.59.111.53
-addnode=45.55.195.233
-addnode=138.68.95.165
+addnode=52.199.33.76
 addnode=18.216.125.20
 addnode=54.211.59.227
 addnode=104.31.64.31
