@@ -1,16 +1,18 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # Copyright (c) 2016 The Zcash developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.authproxy import JSONRPCException
+from test_framework.mininode import COIN
 from test_framework.util import assert_equal, initialize_chain_clean, \
-    start_nodes, connect_nodes_bi, stop_node, wait_and_assert_operationid_status
+    start_nodes, connect_nodes_bi, wait_and_assert_operationid_status, \
+    get_coinbase_address
 
 import sys
-import time
 import timeit
 from decimal import Decimal
 
@@ -22,6 +24,7 @@ def check_value_pool(node, name, total):
             found = True
             assert_equal(pool['monitored'], True)
             assert_equal(pool['chainValue'], total)
+            assert_equal(pool['chainValueZat'], total * COIN)
     assert(found)
 
 class WalletProtectCoinbaseTest (BitcoinTestFramework):
@@ -40,49 +43,21 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
         self.is_network_split=False
         self.sync_all()
 
-    # Returns txid if operation was a success or None
-    def wait_and_assert_operationid_status(self, myopid, in_status='success', in_errormsg=None):
-        print('waiting for async operation {}'.format(myopid))
-        opids = []
-        opids.append(myopid)
-        timeout = 300
-        status = None
-        errormsg = None
-        txid = None
-        for x in xrange(1, timeout):
-            results = self.nodes[0].z_getoperationresult(opids)
-            if len(results)==0:
-                time.sleep(1)
-            else:
-                status = results[0]["status"]
-                if status == "failed":
-                    errormsg = results[0]['error']['message']
-                elif status == "success":
-                    txid = results[0]['result']['txid']
-                break
-        print('...returned status: {}'.format(status))
-        assert_equal(in_status, status)
-        if errormsg is not None:
-            assert(in_errormsg is not None)
-            assert_equal(in_errormsg in errormsg, True)
-            print('...returned error: {}'.format(errormsg))
-        return txid
-
     def run_test (self):
         print "Mining blocks..."
 
         self.nodes[0].generate(4)
 
         walletinfo = self.nodes[0].getwalletinfo()
-        assert_equal(walletinfo['immature_balance'], 40)
+        assert_equal(walletinfo['immature_balance'], 4000)
         assert_equal(walletinfo['balance'], 0)
 
         self.sync_all()
         self.nodes[1].generate(101)
         self.sync_all()
 
-        assert_equal(self.nodes[0].getbalance(), 40)
-        assert_equal(self.nodes[1].getbalance(), 10)
+        assert_equal(self.nodes[0].getbalance(), 4000)
+        assert_equal(self.nodes[1].getbalance(), 1000)
         assert_equal(self.nodes[2].getbalance(), 0)
         assert_equal(self.nodes[3].getbalance(), 0)
 
@@ -101,69 +76,80 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
         assert_equal("Coinbase funds can only be sent to a zaddr" in errorString, True)
 
         # Prepare to send taddr->zaddr
-        mytaddr = self.nodes[0].getnewaddress()
-        myzaddr = self.nodes[0].z_getnewaddress()
+        mytaddr = get_coinbase_address(self.nodes[0])
+        myzaddr = self.nodes[0].z_getnewaddress('sprout')
 
         # Node 3 will test that watch only address utxos are not selected
         self.nodes[3].importaddress(mytaddr)
         recipients= [{"address":myzaddr, "amount": Decimal('1')}]
         myopid = self.nodes[3].z_sendmany(mytaddr, recipients)
-        errorString=""
-        status = None
-        opids = [myopid]
-        timeout = 10
-        for x in xrange(1, timeout):
-            results = self.nodes[3].z_getoperationresult(opids)
-            if len(results)==0:
-                time.sleep(1)
-            else:
-                status = results[0]["status"]
-                errorString = results[0]["error"]["message"]
-                break
-        assert_equal("failed", status)
-        assert_equal("no UTXOs found for taddr from address" in errorString, True)
-        stop_node(self.nodes[3], 3)
-        self.nodes.pop()
+
+        wait_and_assert_operationid_status(self.nodes[3], myopid, "failed", "no UTXOs found for taddr from address", 10)
 
         # This send will fail because our wallet does not allow any change when protecting a coinbase utxo,
         # as it's currently not possible to specify a change address in z_sendmany.
         recipients = []
         recipients.append({"address":myzaddr, "amount":Decimal('1.23456789')})
-        errorString = ""
+        
         myopid = self.nodes[0].z_sendmany(mytaddr, recipients)
-        opids = []
-        opids.append(myopid)
-        timeout = 10
-        status = None
-        for x in xrange(1, timeout):
-            results = self.nodes[0].z_getoperationresult(opids)
-            if len(results)==0:
-                time.sleep(1)
-            else:
-                status = results[0]["status"]
-                errorString = results[0]["error"]["message"]
+        error_result = wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "wallet does not allow any change", 10)
 
-                # Test that the returned status object contains a params field with the operation's input parameters
-                assert_equal(results[0]["method"], "z_sendmany")
-                params =results[0]["params"]
-                assert_equal(params["fee"], Decimal('0.0001')) # default
-                assert_equal(params["minconf"], Decimal('1')) # default
-                assert_equal(params["fromaddress"], mytaddr)
-                assert_equal(params["amounts"][0]["address"], myzaddr)
-                assert_equal(params["amounts"][0]["amount"], Decimal('1.23456789'))
-                break
-        assert_equal("failed", status)
-        assert_equal("wallet does not allow any change" in errorString, True)
+        # Test that the returned status object contains a params field with the operation's input parameters
+        assert_equal(error_result["method"], "z_sendmany")
+        params = error_result["params"]
+        assert_equal(params["fee"], Decimal('0.0001')) # default
+        assert_equal(params["minconf"], Decimal('1')) # default
+        assert_equal(params["fromaddress"], mytaddr)
+        assert_equal(params["amounts"][0]["address"], myzaddr)
+        assert_equal(params["amounts"][0]["amount"], Decimal('1.23456789'))
+
+        # Add viewing key for myzaddr to Node 3
+        myviewingkey = self.nodes[0].z_exportviewingkey(myzaddr)
+        self.nodes[3].z_importviewingkey(myviewingkey, "no")
 
         # This send will succeed.  We send two coinbase utxos totalling 20.0 less a fee of 0.00010000, with no change.
-        shieldvalue = Decimal('20.0') - Decimal('0.0001')
+        shieldvalue = Decimal('2000.0') - Decimal('0.0001')
         recipients = []
         recipients.append({"address":myzaddr, "amount": shieldvalue})
         myopid = self.nodes[0].z_sendmany(mytaddr, recipients)
         mytxid = wait_and_assert_operationid_status(self.nodes[0], myopid)
         self.sync_all()
+
+        # Verify that z_listunspent can return a note that has zero confirmations
+        results = self.nodes[0].z_listunspent()
+        assert(len(results) == 0)
+        results = self.nodes[0].z_listunspent(0) # set minconf to zero
+        assert(len(results) == 1)
+        assert_equal(results[0]["address"], myzaddr)
+        assert_equal(results[0]["amount"], shieldvalue)
+        assert_equal(results[0]["confirmations"], 0)
+
+        # Mine the tx
         self.nodes[1].generate(1)
         self.sync_all()
+
+        # Verify that z_listunspent returns one note which has been confirmed
+        results = self.nodes[0].z_listunspent()
+        assert(len(results) == 1)
+        assert_equal(results[0]["address"], myzaddr)
+        assert_equal(results[0]["amount"], shieldvalue)
+        assert_equal(results[0]["confirmations"], 1)
+        assert_equal(results[0]["spendable"], True)
+
+        # Verify that z_listunspent returns note for watchonly address on node 3.
+        results = self.nodes[3].z_listunspent(1, 999, True)
+        assert(len(results) == 1)
+        assert_equal(results[0]["address"], myzaddr)
+        assert_equal(results[0]["amount"], shieldvalue)
+        assert_equal(results[0]["confirmations"], 1)
+        assert_equal(results[0]["spendable"], False)
+
+        # Verify that z_listunspent returns error when address spending key from node 0 is not available in wallet of node 1.
+        try:
+            results = self.nodes[1].z_listunspent(1, 999, False, [myzaddr])
+        except JSONRPCException as e:
+            errorString = e.error['message']
+        assert_equal("Invalid parameter, spending key for address does not belong to wallet" in errorString, True)
 
         # Verify that debug=zrpcunsafe logs params, and that full txid is associated with opid
         logpath = self.options.tmpdir+"/node0/regtest/debug.log"
@@ -181,9 +167,9 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
 
         # check balances (the z_sendmany consumes 3 coinbase utxos)
         resp = self.nodes[0].z_gettotalbalance()
-        assert_equal(Decimal(resp["transparent"]), Decimal('20.0'))
-        assert_equal(Decimal(resp["private"]), Decimal('19.9999'))
-        assert_equal(Decimal(resp["total"]), Decimal('39.9999'))
+        assert_equal(Decimal(resp["transparent"]), Decimal('2000.0'))
+        assert_equal(Decimal(resp["private"]), Decimal('1999.9999'))
+        assert_equal(Decimal(resp["total"]), Decimal('3999.9999'))
 
         # The Sprout value pool should reflect the send
         sproutvalue = shieldvalue
@@ -191,22 +177,22 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
 
         # A custom fee of 0 is okay.  Here the node will send the note value back to itself.
         recipients = []
-        recipients.append({"address":myzaddr, "amount": Decimal('19.9999')})
+        recipients.append({"address":myzaddr, "amount": Decimal('1999.9999')})
         myopid = self.nodes[0].z_sendmany(myzaddr, recipients, 1, Decimal('0.0'))
         mytxid = wait_and_assert_operationid_status(self.nodes[0], myopid)
         self.sync_all()
         self.nodes[1].generate(1)
         self.sync_all()
         resp = self.nodes[0].z_gettotalbalance()
-        assert_equal(Decimal(resp["transparent"]), Decimal('20.0'))
-        assert_equal(Decimal(resp["private"]), Decimal('19.9999'))
-        assert_equal(Decimal(resp["total"]), Decimal('39.9999'))
+        assert_equal(Decimal(resp["transparent"]), Decimal('2000.0'))
+        assert_equal(Decimal(resp["private"]), Decimal('1999.9999'))
+        assert_equal(Decimal(resp["total"]), Decimal('3999.9999'))
 
         # The Sprout value pool should be unchanged
         check_value_pool(self.nodes[0], 'sprout', sproutvalue)
 
         # convert note to transparent funds
-        unshieldvalue = Decimal('10.0')
+        unshieldvalue = Decimal('1000.0')
         recipients = []
         recipients.append({"address":mytaddr, "amount": unshieldvalue})
         myopid = self.nodes[0].z_sendmany(myzaddr, recipients)
@@ -224,19 +210,19 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
         # check balances
         sproutvalue -= unshieldvalue + Decimal('0.0001')
         resp = self.nodes[0].z_gettotalbalance()
-        assert_equal(Decimal(resp["transparent"]), Decimal('30.0'))
-        assert_equal(Decimal(resp["private"]), Decimal('9.9998'))
-        assert_equal(Decimal(resp["total"]), Decimal('39.9998'))
+        assert_equal(Decimal(resp["transparent"]), Decimal('3000.0'))
+        assert_equal(Decimal(resp["private"]), Decimal('999.9998'))
+        assert_equal(Decimal(resp["total"]), Decimal('3999.9998'))
         check_value_pool(self.nodes[0], 'sprout', sproutvalue)
 
         # z_sendmany will return an error if there is transparent change output considered dust.
         # UTXO selection in z_sendmany sorts in ascending order, so smallest utxos are consumed first.
         # At this point in time, unspent notes all have a value of 10.0 and standard z_sendmany fee is 0.0001.
         recipients = []
-        amount = Decimal('10.0') - Decimal('0.00010000') - Decimal('0.00000001')    # this leaves change at 1 zatoshi less than dust threshold
+        amount = Decimal('1000.0') - Decimal('0.00010000') - Decimal('0.00000001')    # this leaves change at 1 zatoshi less than dust threshold
         recipients.append({"address":self.nodes[0].getnewaddress(), "amount":amount })
         myopid = self.nodes[0].z_sendmany(mytaddr, recipients)
-        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient transparent funds, have 10.00, need 0.00000053 more to avoid creating invalid change output 0.00000001 (dust threshold is 0.00000054)")
+        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient transparent funds, have 1000.00, need 0.00000053 more to avoid creating invalid change output 0.00000001 (dust threshold is 0.00000054)")
 
         # Send will fail because send amount is too big, even when including coinbase utxos
         errorString = ""
@@ -248,15 +234,15 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
 
         # z_sendmany will fail because of insufficient funds
         recipients = []
-        recipients.append({"address":self.nodes[1].getnewaddress(), "amount":Decimal('10000.0')})
+        recipients.append({"address":self.nodes[1].getnewaddress(), "amount":Decimal('1000000.0')})
         myopid = self.nodes[0].z_sendmany(mytaddr, recipients)
-        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient transparent funds, have 10.00, need 10000.0001")
+        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient transparent funds, have 1000.00, need 1000000.0001")
         myopid = self.nodes[0].z_sendmany(myzaddr, recipients)
-        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient protected funds, have 9.9998, need 10000.0001")
+        wait_and_assert_operationid_status(self.nodes[0], myopid, "failed", "Insufficient shielded funds, have 999.9998, need 1000000.0001")
 
         # Send will fail because of insufficient funds unless sender uses coinbase utxos
         try:
-            self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 21)
+            self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 2100)
         except JSONRPCException,e:
             errorString = e.error['message']
         assert_equal("Insufficient funds, coinbase funds can only be spent after they have been sent to a zaddr" in errorString, True)
@@ -316,7 +302,7 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
 
         # Send will fail because fee is larger than MAX_MONEY
         try:
-            self.nodes[0].z_sendmany(myzaddr, recipients, 1, Decimal('21000000.00000001'))
+            self.nodes[0].z_sendmany(myzaddr, recipients, 1, Decimal('1000000000.00000001'))
         except JSONRPCException,e:
             errorString = e.error['message']
         assert_equal("Amount out of range" in errorString, True)
@@ -351,7 +337,7 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
         custom_fee = Decimal('0.00012345')
         zbalance = self.nodes[0].z_getbalance(myzaddr)
         for i in xrange(0,num_recipients):
-            newzaddr = self.nodes[2].z_getnewaddress()
+            newzaddr = self.nodes[2].z_getnewaddress('sprout')
             recipients.append({"address":newzaddr, "amount":amount_per_recipient})
         myopid = self.nodes[0].z_sendmany(myzaddr, recipients, minconf, custom_fee)
         wait_and_assert_operationid_status(self.nodes[0], myopid)
@@ -359,13 +345,22 @@ class WalletProtectCoinbaseTest (BitcoinTestFramework):
         self.nodes[1].generate(1)
         self.sync_all()
 
-        # check balances
+        # check balances and unspent notes
         resp = self.nodes[2].z_gettotalbalance()
         assert_equal(Decimal(resp["private"]), send_amount)
+
+        notes = self.nodes[2].z_listunspent()
+        sum_of_notes = sum([note["amount"] for note in notes])
+        assert_equal(Decimal(resp["private"]), sum_of_notes)
+
         resp = self.nodes[0].z_getbalance(myzaddr)
         assert_equal(Decimal(resp), zbalance - custom_fee - send_amount)
         sproutvalue -= custom_fee
         check_value_pool(self.nodes[0], 'sprout', sproutvalue)
+
+        notes = self.nodes[0].z_listunspent(1, 99999, False, [myzaddr])
+        sum_of_notes = sum([note["amount"] for note in notes])
+        assert_equal(Decimal(resp), sum_of_notes)
 
 if __name__ == '__main__':
     WalletProtectCoinbaseTest().main()

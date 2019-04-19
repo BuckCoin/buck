@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# Copyright (c) 2014 Wladmir J. van der Laan
+#!/usr/bin/env python
+# Copyright (c) 2014 Wladimir J. van der Laan
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 '''
@@ -11,7 +11,7 @@ argument:
     nodes_main.txt
     nodes_test.txt
 
-These files must consist of lines in the format 
+These files must consist of lines in the format
 
     <ip>
     <ip>:<port>
@@ -130,9 +130,8 @@ def main():
         process_nodes(g, f, 'pnSeed6_main', 5749)
     g.write('\n')
     with open(os.path.join(indir,'nodes_test.txt'),'r') as f:
-        process_nodes(g, f, 'pnSeed6_test', 18233)
+        process_nodes(g, f, 'pnSeed6_test', 15749)
     g.write('#endif // BITCOIN_CHAINPARAMSSEEDS_H\n')
             
 if __name__ == '__main__':
     main()
-

@@ -13,8 +13,8 @@
 #include "data/alertTests.raw.h"
 
 #include "main.h"
-#include "rpcprotocol.h"
-#include "rpcserver.h"
+#include "rpc/protocol.h"
+#include "rpc/server.h"
 #include "serialize.h"
 #include "streams.h"
 #include "util.h"
@@ -277,8 +277,6 @@ struct ReadAlerts : public TestingSetup
     std::vector<CAlert> alerts;
 };
 
-/* Alerts disabled
-
 BOOST_FIXTURE_TEST_SUITE(Alert_tests, ReadAlerts)
 
 
@@ -445,7 +443,5 @@ BOOST_AUTO_TEST_CASE(PartitionAlert)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-*/
 
 #endif

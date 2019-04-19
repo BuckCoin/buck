@@ -1,4 +1,4 @@
-import re, sys, os, os.path
+import re, os, os.path
 import subprocess
 import argparse
 from itertools import islice
@@ -23,6 +23,11 @@ author_aliases = {
     'Simon': 'Simon Liu',
     'bitcartel': 'Simon Liu',
     'EthanHeilman': 'Ethan Heilman',
+    'Ariel': 'Ariel Gabizon',
+    'arielgabizon': 'Ariel Gabizon',
+    'Charlie OKeefe': 'Charlie O\'Keefe',
+    'str4d': 'Jack Grigg',
+    'Duke Leto': 'Jonathan \"Duke\" Leto'
 }
 
 def apply_author_aliases(name):

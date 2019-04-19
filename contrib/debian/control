@@ -10,12 +10,11 @@ Build-Depends: autoconf, automake, bsdmainutils, build-essential,
 Vcs-Git: https://github.com/buckcoin/buck.git
 Vcs-Browser: https://github.com/buckcoin
 
-Package: buck
-Version: 1.0.3
+Package: zcash
+Architecture: amd64
 Depends: ${shlibs:Depends}
-Architecture: all
 Description: HTTPS for money.
- Based on Bitcoin's & Zcash code, it intends to offer a far higher standard
+ Based on Bitcoin's code, it intends to offer a far higher standard
  of privacy and anonymity through a sophisticiated zero-knowledge
  proving scheme which preserves confidentiality of transaction metadata.
  This package provides the daemon, zcashd, and the CLI tool,

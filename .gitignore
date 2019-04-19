@@ -1,16 +1,14 @@
 *.tar.gz
 *.deb
 *.exe
+.nfs*
+
 src/bitcoin
 src/zcashd
 src/zcash-cli
 src/zcash-gtest
 src/zcash-tx
 src/test/test_bitcoin
-
-# Zcash utilities
-src/zcash/GenerateParams
-src/zcash/CreateJoinSplit
 
 *zcashTest.pk
 *zcashTest.vk
@@ -74,9 +72,7 @@ src/univalue/gen
 *.la
 
 # Compilation
-src/Makefile
-doc/man/Makefile
-/Makefile
+Makefile
 
 # Unit-tests
 Makefile.test
@@ -115,7 +111,3 @@ libzcashconsensus.pc
 
 contrib/debian/files
 contrib/debian/substvars
-
-.idea/
-*.iml
-/nbproject/private/

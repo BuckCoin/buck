@@ -151,7 +151,7 @@ Threads
 
 - ThreadMapPort : Universal plug-and-play startup/shutdown
 
-- ThreadSocketHandler : Sends/Receives data from peers on port 8233.
+- ThreadSocketHandler : Sends/Receives data from peers on port 5749.
 
 - ThreadOpenAddedConnections : Opens network connections to added nodes.
 
@@ -181,3 +181,5 @@ Tested ACK - Reviewed the code changes and have verified the functionality or bu
 ACK -  A loose ACK can be confusing. It's best to avoid them unless it's a documentation/comment only change in which case there is nothing to test/verify; therefore the tested/untested distinction is not there.
 
 NACK - Disagree with the code changes/concept. Should be accompanied by an explanation.
+
+See the [Development Guidelines](https://zcash.readthedocs.io/en/latest/rtd_pages/development_guidelines.html) documentation for preferred workflows, information on continuous integration and release versioning.

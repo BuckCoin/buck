@@ -1,14 +1,17 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # Copyright (c) 2016 The Zcash developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 # This is a regression test for #1941.
 
+import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
+
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, initialize_chain_clean, \
     initialize_datadir, start_nodes, start_node, connect_nodes_bi, \
-    bitcoind_processes, wait_and_assert_operationid_status
+    bitcoind_processes, wait_and_assert_operationid_status, \
+    get_coinbase_address
 
 from decimal import Decimal
 
@@ -46,12 +49,12 @@ class Wallet1941RegressionTest (BitcoinTestFramework):
         self.nodes[0].setmocktime(starttime)
         self.nodes[0].generate(101)
 
-        mytaddr = self.nodes[0].getnewaddress()     # where coins were mined
-        myzaddr = self.nodes[0].z_getnewaddress()
+        mytaddr = get_coinbase_address(self.nodes[0])
+        myzaddr = self.nodes[0].z_getnewaddress('sprout')
 
-        # Send 10 coins to our zaddr.
+        # Send 1000 coins to our zaddr.
         recipients = []
-        recipients.append({"address":myzaddr, "amount":Decimal('10.0') - Decimal('0.0001')})
+        recipients.append({"address":myzaddr, "amount":Decimal('1000.0') - Decimal('0.0001')})
         myopid = self.nodes[0].z_sendmany(mytaddr, recipients)
         wait_and_assert_operationid_status(self.nodes[0], myopid)
         self.nodes[0].generate(1)
@@ -66,7 +69,7 @@ class Wallet1941RegressionTest (BitcoinTestFramework):
 
         # Confirm the balance on node 0.
         resp = self.nodes[0].z_getbalance(myzaddr)
-        assert_equal(Decimal(resp), Decimal('10.0') - Decimal('0.0001'))
+        assert_equal(Decimal(resp), Decimal('1000.0') - Decimal('0.0001'))
 
         # Export the key for the zaddr from node 0.
         key = self.nodes[0].z_exportkey(myzaddr)
@@ -74,7 +77,7 @@ class Wallet1941RegressionTest (BitcoinTestFramework):
         # Start the new wallet
         self.add_second_node()
         self.nodes[1].getnewaddress()
-        self.nodes[1].z_getnewaddress()
+        self.nodes[1].z_getnewaddress('sprout')
         self.nodes[1].generate(101)
         self.sync_all()
 
@@ -93,7 +96,7 @@ class Wallet1941RegressionTest (BitcoinTestFramework):
         # Confirm that the balance on node 1 is valid now (node 1 must
         # have rescanned)
         resp = self.nodes[1].z_getbalance(myzaddr)
-        assert_equal(Decimal(resp), Decimal('10.0') - Decimal('0.0001'))
+        assert_equal(Decimal(resp), Decimal('1000.0') - Decimal('0.0001'))
 
 
 if __name__ == '__main__':

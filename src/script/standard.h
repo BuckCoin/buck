@@ -61,12 +61,9 @@ enum txnouttype
     TX_NONSTANDARD,
     // 'standard' transaction types:
     TX_PUBKEY,
-    TX_PUBKEY_REPLAY,
     TX_PUBKEYHASH,
-    TX_PUBKEYHASH_REPLAY,
     TX_SCRIPTHASH,
     TX_MULTISIG,
-    TX_MULTISIG_REPLAY,
     TX_NULL_DATA,
 };
 
@@ -81,9 +78,12 @@ public:
  *  * CNoDestination: no destination set
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
- *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
+ *  A CTxDestination is the internal data type encoded in a bitcoin address
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
+
+/** Check whether a CTxDestination is a CNoDestination. */
+bool IsValidDestination(const CTxDestination& dest);
 
 const char* GetTxnOutputType(txnouttype t);
 
