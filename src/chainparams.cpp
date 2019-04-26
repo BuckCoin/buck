@@ -97,11 +97,11 @@ public:
         consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nProtocolVersion = 170002;
         consensus.vUpgrades[Consensus::UPGRADE_TESTDUMMY].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
-        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 770005;
+        consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nProtocolVersion = 170007;
         consensus.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight = 261500;
-        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 770007;
+        consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nProtocolVersion = 170007;
         consensus.vUpgrades[Consensus::UPGRADE_SAPLING].nActivationHeight = 261500;
-        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 770009;
+        consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nProtocolVersion = 170009;
         consensus.vUpgrades[Consensus::UPGRADE_BLOSSOM].nActivationHeight =
             Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT;
 
