@@ -176,17 +176,18 @@ public:
             ( 10000, uint256S("0x000000a1231c242c8a542f200686b7c49b7cd4b745c6658cae028a57f9aa39e8"))
             ( 19500, uint256S("0x000000284fb4980f0a6cf9a51474e7e9dd9d91d2c5fbe5ebc884aafe66ddab83"))						
             ( 35000, uint256S("0x0000003c6e4d945a16077570789560a1d48c5abe5f7a93fb8f325670e9c504d8"))
-            ( 50000, uint256S("0x0000002bb9cf35614ae5e8a74dcf290a8c2d3336808b0b3eb5a273c8ece5f185"))						
-			( 75000, uint256S("0x000000e1189970c59df3072e28686bc76d3fd59e03f972a9257f05b16ee4d49d"))			
-			( 100000, uint256S("0x0000030beebdfeaa0919584d0ee9434d63f2693b6d7e5b3c0fc1e8e066dc7982"))			
-			( 125000, uint256S("0x0000005084851cd551ae89aee69a5cdd5765387847e65adc464f4fd4011f0959"))			
-			( 150000, uint256S("0x00000057ebf48db571d7402697693a895b772f63a0120f486e0f7c70e8dfe69c"))
-			( 175000, uint256S("0x0000001d7c57b8142d299bbaf221ddefe8295d5e57af0130782fea29d30724d8"))
-			( 184850, uint256S("0x000000222b32827c0e19f9b68e5df5ae365cb9b48d4381718f6aa62174bdb833"))			
-			( 257470, uint256S("0x000001b81d97c59bf87a06b5ca32d2f3be8ebef3cda9b07055a4f2ab4f8b1847")),			
+            ( 50000, uint256S("0x0000002bb9cf35614ae5e8a74dcf290a8c2d3336808b0b3eb5a273c8ece5f185"))
+            ( 75000, uint256S("0x000000e1189970c59df3072e28686bc76d3fd59e03f972a9257f05b16ee4d49d"))
+            ( 100000, uint256S("0x0000030beebdfeaa0919584d0ee9434d63f2693b6d7e5b3c0fc1e8e066dc7982"))
+            ( 125000, uint256S("0x0000005084851cd551ae89aee69a5cdd5765387847e65adc464f4fd4011f0959"))
+            ( 150000, uint256S("0x00000057ebf48db571d7402697693a895b772f63a0120f486e0f7c70e8dfe69c"))
+            ( 175000, uint256S("0x0000001d7c57b8142d299bbaf221ddefe8295d5e57af0130782fea29d30724d8"))
+            ( 184850, uint256S("0x000000222b32827c0e19f9b68e5df5ae365cb9b48d4381718f6aa62174bdb833"))
+            ( 257470, uint256S("0x000001b81d97c59bf87a06b5ca32d2f3be8ebef3cda9b07055a4f2ab4f8b1847"))
+            ( 263300, uint256S("0x00000257317a362097ccffa4b48bccdc290ed877f7fd735ae9a4fddbf04e0be5")),
 			
-            1555681695,       // * UNIX timestamp of last checkpoint block
-            681851,           // * total number of transactions between genesis and last checkpoint
+            1556575752,       // * UNIX timestamp of last checkpoint block
+            697145,           // * total number of transactions between genesis and last checkpoint
                               //   (the tx=... number in the SetBestChain debug.log lines)
             1525   // * estimated number of transactions per day after checkpoint
                               //   total number of tx / (checkpoint block height / (24 * 24))
