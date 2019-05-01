@@ -78,17 +78,18 @@ cd .buck
 # Create a new file named buck.conf
 nano buck.conf
 # Insert the following into the new buck.conf file 
-addnode=159.89.40.161
-addnode=45.55.45.68
-addnode=62.210.217.100
+addnode=165.227.123.242
+addnode=202.181.27.3
 addnode=136.33.111.57
-addnode=195.201.212.176
+addnode=34.83.236.138
+addnode=104.199.207.36
+addnode=96.30.196.44
+addnode=136.33.111.57
 addnode=84.234.52.190
-addnode=76.176.77.120
-addnode=209.250.227.29
-addnode=136.33.111.57
-addnode=61.176.223.112
-addnode=112.219.203.27
+addnode=76.110.75.137
+addnode=52.14.3.137
+addnode=159.89.40.161
+addnode=45.55.35.219
 # To save this new file, hit CTRL-X, then Y to save new file.
 # Change back to your home folder
 cd ..
