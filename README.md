@@ -30,8 +30,14 @@ Equihash algorithm.
 You can use your Desktop PC to mine Buck. Most profitable is GPU mining.
 
 ## Roadmap
+- Linux build - (COMPLETED)
+- Linux CLI binaries - (COMPLETED)
 - Windows build - (COMPLETED)
+- Windows CLI binaries - (COMPLETED)
 - Windows GUI wallet - (COMPLETED)
+- Mac build - (COMPLETED)
+- Mac CLI binaries - (COMPLETED)
+- Mac GUI Wallet - (COMPLETED)
 
 ### Ports:
 - RPC port: 5739
