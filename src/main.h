@@ -27,6 +27,8 @@
 #include "txmempool.h"
 #include "uint256.h"
 #include "addressindex.h"
+#include "spentindex.h"
+#include "timestampindex.h"
 
 #include <algorithm>
 #include <exception>
@@ -142,6 +144,9 @@ extern bool fInsightExplorer;
 
 // Maintain a full address index, used to query for the balance, txids and unspent outputs for addresses
 extern bool fAddressIndex;
+
+// Maintain a full spent index, used to query the spending txid and input index for an outpoint
+extern bool fSpentIndex;
 
 // END insightexplorer
 
