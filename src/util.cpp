@@ -907,7 +907,7 @@ std::string PrivacyInfo()
 {
     return "\n" +
            FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using Buck, please see <%s>."),
-                                     "https://buck.red/security/security.html/")) + "\n";
+                                     "https://buck.red/security/security/")) + "\n";
 }
 
 std::string LicenseInfo()
