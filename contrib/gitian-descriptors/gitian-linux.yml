@@ -1,12 +1,14 @@
 ---
-name: "buck-2.0.4"
+name: "buck-2.0.7"
 enable_cache: true
 distro: "debian"
 suites:
 - "jessie"
+- "stretch"
 architectures:
 - "amd64"
 packages:
+- "curl"
 - "autoconf"
 - "automake"
 - "bsdmainutils"

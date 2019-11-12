@@ -1,6 +1,6 @@
 // Copyright (c) 2018 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #include "transaction_builder.h"
 
@@ -74,6 +74,15 @@ struct JSDescException : public std::exception
 private:
     std::string msg;
 };
+
+
+void TransactionBuilder::SetExpiryHeight(uint32_t nExpiryHeight)
+{
+    if (nExpiryHeight < nHeight || nExpiryHeight <= 0 || nExpiryHeight >= TX_EXPIRY_HEIGHT_THRESHOLD) {
+        throw new std::runtime_error("TransactionBuilder::SetExpiryHeight: invalid expiry height");
+    }
+    mtx.nExpiryHeight = nExpiryHeight;
+}
 
 void TransactionBuilder::AddSaplingSpend(
     libzcash::SaplingExpandedSpendingKey expsk,
@@ -507,12 +516,12 @@ void TransactionBuilder::CreateJSDescriptions()
         JSDescription prevJoinSplit;
 
         // Keep track of previous JoinSplit and its commitments
-        if (mtx.vjoinsplit.size() > 0) {
-            prevJoinSplit = mtx.vjoinsplit.back();
+        if (mtx.vJoinSplit.size() > 0) {
+            prevJoinSplit = mtx.vJoinSplit.back();
         }
 
         // If there is no change, the chain has terminated so we can reset the tracked treestate.
-        if (jsChange == 0 && mtx.vjoinsplit.size() > 0) {
+        if (jsChange == 0 && mtx.vJoinSplit.size() > 0) {
             intermediates.clear();
             previousCommitments.clear();
         }
@@ -524,6 +533,10 @@ void TransactionBuilder::CreateJSDescriptions()
             // Update tree state with previous joinsplit
             SproutMerkleTree tree;
             {
+                // assert that coinsView is not null
+                assert(coinsView);
+                // We do not check cs_coinView because we do not set this in testing
+                // assert(cs_coinsView);
                 LOCK(cs_coinsView);
                 auto it = intermediates.find(prevJoinSplit.anchor);
                 if (it != intermediates.end()) {
@@ -673,8 +686,8 @@ void TransactionBuilder::CreateJSDescription(
     std::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
     std::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap)
 {
-    LogPrint("zrpcunsafe", "%s: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
-        mtx.vjoinsplit.size(),
+    LogPrint("zrpcunsafe", "CreateJSDescription: creating joinsplit at index %d (vpub_old=%s, vpub_new=%s, in[0]=%s, in[1]=%s, out[0]=%s, out[1]=%s)\n",
+        mtx.vJoinSplit.size(),
         FormatMoney(vpub_old), FormatMoney(vpub_new),
         FormatMoney(vjsin[0].note.value()), FormatMoney(vjsin[1].note.value()),
         FormatMoney(vjsout[0].value), FormatMoney(vjsout[1].value));
@@ -682,8 +695,8 @@ void TransactionBuilder::CreateJSDescription(
     uint256 esk; // payment disclosure - secret
 
     // Generate the proof, this can take over a minute.
+    assert(mtx.fOverwintered && (mtx.nVersion >= SAPLING_TX_VERSION));
     JSDescription jsdesc = JSDescription::Randomized(
-            mtx.fOverwintered && (mtx.nVersion >= SAPLING_TX_VERSION),
             *sproutParams,
             mtx.joinSplitPubKey,
             vjsin[0].witness.root(),
@@ -703,7 +716,7 @@ void TransactionBuilder::CreateJSDescription(
         }
     }
 
-    mtx.vjoinsplit.push_back(jsdesc);
+    mtx.vJoinSplit.push_back(jsdesc);
 
     // TODO: Sprout payment disclosure
 }

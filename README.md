@@ -1,6 +1,6 @@
 ![BUCK](https://i.imgur.com/RXp7QTz.png)
 
-# Buck 2.0.4 - The Future of Cryptocurrency
+# Buck 2.0.7-1 - The Future of Cryptocurrency
 
 **Keep running wallet to strengthen the Buck network. Backup your wallet in many locations & keep your coins wallet offline.**
 
@@ -16,20 +16,17 @@ Block Explorer: https://Explorer.Buck.red
 - Algo: Equihash
 - Max supply: 1 Billion coins 
 - Target block creation rate: 1000 coins every 2.5 minutes
-- Current block size is similar to BCC/BCH (BUCK = 2MB every 2.5 mins ~ BCC/BCH = 8MB every 10 min)
-- Technology: ZeroCoin / Zcash
+- Current block size: 2MB every 2.5 mins
+- Technology: Zcash
 
 ## Buck Principles: 
-- Anonymous:
-It is recommended to use an anonymous zaddr for all transactions. Public taddrs transactions are also allowed.
 - All contributors are welcome
 
 As a miner you should not use the biggest pools to follow main principles.
 - Easy to mine:
 Equihash algorithm.
-You can use your Desktop PC to mine Buck. Most profitable is GPU mining.
 
-## Roadmap
+## Roadmap 
 - Linux build - (COMPLETED)
 - Linux CLI binaries - (COMPLETED)
 - Windows build - (COMPLETED)
@@ -38,6 +35,7 @@ You can use your Desktop PC to mine Buck. Most profitable is GPU mining.
 - Mac build - (COMPLETED)
 - Mac CLI binaries - (COMPLETED)
 - Mac GUI Wallet - (COMPLETED)
+- Linux ARM CLI binaries - (COMPLETED)
 
 ### Ports:
 - RPC port: 5739
@@ -103,57 +101,6 @@ cd ..
 # To stop Buck safely if it is running in daemon, close the application with zcash-cli stop
 zcash-cli stop
 ```
-
-### Docker
-
-Build
-```
-$ docker build -t buck/buck .
-```
-
-Create a data directory on your local drive and create a buck.conf config file
-```
-$ mkdir -p /ops/volumes/buck/data
-$ touch /ops/volumes/buck/data/buck.conf
-$ chown -R 999:999 /ops/volumes/buck/data
-```
-
-Create buck.conf config file and run the application
-```
-$ docker run -d --name buck-node \
-  -v buck.conf:/buck/data/buck.conf \
-  -p 5749:5749 -p 127.0.0.1:5739:5739 \
-  buck/buck
-```
-
-Verify buck-node is running
-```
-$ docker ps
-CONTAINER ID        IMAGE                  COMMAND                  CREATED             STATUS              PORTS                                              NAMES
-31868a91456d        buck/buck          "zcashd --datadir=..."   2 hours ago         Up 2 hours          127.0.0.1:5739->5739/tcp, 0.0.0.0:5749->5749/tcp   buck-node
-```
-
-Follow the logs
-```
-docker logs -f buck-node
-```
-
-The cli command is a wrapper to zcash-cli that works with an already running Docker container
-```
-docker exec -it buck-node cli help
-```
-
-## Using a Dockerfile
-If you'd like to have a production btc/buck image with a pre-baked configuration
-file, use of a Dockerfile is recommended:
-
-```
-FROM buck/buck
-COPY buck.conf /buck/data/buck.conf
-```
-
-Then, build with `docker build -t my-buck .` and run.
-
 
 
 Security Warnings

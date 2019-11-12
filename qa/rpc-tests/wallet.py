@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Copyright (c) 2014 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
 
@@ -286,12 +286,16 @@ class WalletTest (BitcoinTestFramework):
         myzaddr = self.nodes[0].z_getnewaddress('sprout')
 
         recipients = []
-        num_t_recipients = 3000
+        num_t_recipients = 1000
+        num_z_recipients = 2100
         amount_per_recipient = Decimal('0.00000001')
         errorString = ''
         for i in xrange(0,num_t_recipients):
             newtaddr = self.nodes[2].getnewaddress()
             recipients.append({"address":newtaddr, "amount":amount_per_recipient})
+        for i in xrange(0,num_z_recipients):
+            newzaddr = self.nodes[2].z_getnewaddress('sprout')
+            recipients.append({"address":newzaddr, "amount":amount_per_recipient})
 
         # Issue #2759 Workaround START
         # HTTP connection to node 0 may fall into a state, during the few minutes it takes to process
@@ -306,42 +310,7 @@ class WalletTest (BitcoinTestFramework):
             self.nodes[0].z_sendmany(myzaddr, recipients)
         except JSONRPCException,e:
             errorString = e.error['message']
-        assert("Too many outputs, size of raw transaction" in errorString)
-
-        recipients = []
-        num_t_recipients = 2000
-        num_z_recipients = 50
-        amount_per_recipient = Decimal('0.00000001')
-        errorString = ''
-        for i in xrange(0,num_t_recipients):
-            newtaddr = self.nodes[2].getnewaddress()
-            recipients.append({"address":newtaddr, "amount":amount_per_recipient})
-        for i in xrange(0,num_z_recipients):
-            newzaddr = self.nodes[2].z_getnewaddress('sprout')
-            recipients.append({"address":newzaddr, "amount":amount_per_recipient})
-
-        # Issue #2759 Workaround START
-        self.nodes[0].getinfo()
-        # Issue #2759 Workaround END
-
-        try:
-            self.nodes[0].z_sendmany(myzaddr, recipients)
-        except JSONRPCException,e:
-            errorString = e.error['message']
         assert("size of raw transaction would be larger than limit" in errorString)
-
-        recipients = []
-        num_z_recipients = 100
-        amount_per_recipient = Decimal('0.00000001')
-        errorString = ''
-        for i in xrange(0,num_z_recipients):
-            newzaddr = self.nodes[2].z_getnewaddress('sprout')
-            recipients.append({"address":newzaddr, "amount":amount_per_recipient})
-        try:
-            self.nodes[0].z_sendmany(myzaddr, recipients)
-        except JSONRPCException,e:
-            errorString = e.error['message']
-        assert("Invalid parameter, too many zaddr outputs" in errorString)
 
         # add zaddr to node 2
         myzaddr = self.nodes[2].z_getnewaddress('sprout')
