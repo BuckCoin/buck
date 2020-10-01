@@ -34,7 +34,7 @@ Block Explorers:
 
 - Protocols: 
 
-      DEV fees or taxes: None
+- DEV fees or taxes: None
 
 ## Buck Principles: 
 - All contributors are welcome
