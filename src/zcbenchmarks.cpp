@@ -17,7 +17,10 @@
 #include "consensus/validation.h"
 #include "main.h"
 #include "miner.h"
+#include "policy/policy.h"
 #include "pow.h"
+#include "proof_verifier.h"
+#include "random.h"
 #include "rpc/server.h"
 #include "script/sign.h"
 #include "sodium.h"
@@ -32,6 +35,8 @@
 #include "zcash/IncrementalMerkleTree.hpp"
 #include "zcash/Note.hpp"
 #include "librustzcash.h"
+
+#include <rust/ed25519/types.h>
 
 using namespace libzcash;
 // This method is based on Shutdown from init.cpp
@@ -93,15 +98,14 @@ double benchmark_sleep()
 
 double benchmark_create_joinsplit()
 {
-    uint256 joinSplitPubKey;
+    Ed25519VerificationKey joinSplitPubKey;
 
     /* Get the anchor of an empty commitment tree. */
     uint256 anchor = SproutMerkleTree().root();
 
     struct timeval tv_start;
     timer_start(tv_start);
-    JSDescription jsdesc(*pzcashParams,
-                         joinSplitPubKey,
+    JSDescription jsdesc(joinSplitPubKey,
                          anchor,
                          {JSInput(), JSInput()},
                          {JSOutput(), JSOutput()},
@@ -109,8 +113,8 @@ double benchmark_create_joinsplit()
                          0);
     double ret = timer_stop(tv_start);
 
-    auto verifier = libzcash::ProofVerifier::Strict();
-    assert(jsdesc.Verify(*pzcashParams, verifier, joinSplitPubKey));
+    auto verifier = ProofVerifier::Strict();
+    assert(verifier.VerifySprout(jsdesc, joinSplitPubKey));
     return ret;
 }
 
@@ -139,9 +143,9 @@ double benchmark_verify_joinsplit(const JSDescription &joinsplit)
 {
     struct timeval tv_start;
     timer_start(tv_start);
-    uint256 joinSplitPubKey;
-    auto verifier = libzcash::ProofVerifier::Strict();
-    joinsplit.Verify(*pzcashParams, verifier, joinSplitPubKey);
+    Ed25519VerificationKey joinSplitPubKey;
+    auto verifier = ProofVerifier::Strict();
+    verifier.VerifySprout(joinsplit, joinSplitPubKey);
     return timer_stop(tv_start);
 }
 
@@ -160,8 +164,7 @@ double benchmark_solve_equihash()
     EhInitialiseState(n, k, eh_state);
     crypto_generichash_blake2b_update(&eh_state, (unsigned char*)&ss[0], ss.size());
 
-    uint256 nonce;
-    randombytes_buf(nonce.begin(), 32);
+    uint256 nonce = GetRandHash();
     crypto_generichash_blake2b_update(&eh_state,
                                     nonce.begin(),
                                     nonce.size());
@@ -276,7 +279,7 @@ double benchmark_try_decrypt_sprout_notes(size_t nKeys)
     }
 
     auto sk = libzcash::SproutSpendingKey::random();
-    auto tx = GetValidSproutReceive(*pzcashParams, sk, 10, true);
+    auto tx = GetValidSproutReceive(sk, 10, true);
 
     struct timeval tv_start;
     timer_start(tv_start);
@@ -297,7 +300,7 @@ double benchmark_try_decrypt_sapling_notes(size_t nKeys)
 
     for (int i = 0; i < nKeys; i++) {
         auto sk = masterKey.Derive(i);
-        wallet.AddSaplingSpendingKey(sk, sk.DefaultAddress());
+        wallet.AddSaplingSpendingKey(sk);
     }
 
     // Generate a key that has not been added to the wallet
@@ -306,14 +309,14 @@ double benchmark_try_decrypt_sapling_notes(size_t nKeys)
 
     struct timeval tv_start;
     timer_start(tv_start);
-    auto noteDataMapAndAddressesToAdd = wallet.FindMySaplingNotes(tx);
+    auto noteDataMapAndAddressesToAdd = wallet.FindMySaplingNotes(tx, 1);
     assert(noteDataMapAndAddressesToAdd.first.empty());
     return timer_stop(tv_start);
 }
 
 CWalletTx CreateSproutTxWithNoteData(const libzcash::SproutSpendingKey& sk) {
-    auto wtx = GetValidSproutReceive(*pzcashParams, sk, 10, true);
-    auto note = GetSproutNote(*pzcashParams, sk, wtx, 0, 1);
+    auto wtx = GetValidSproutReceive(sk, 10, true);
+    auto note = GetSproutNote(sk, wtx, 0, 1);
     auto nullifier = note.nullifier(sk);
 
     mapSproutNoteData_t noteDataMap;
@@ -349,7 +352,7 @@ double benchmark_increment_sprout_note_witnesses(size_t nTxs)
     index1.nHeight = 1;
 
     // Increment to get transactions witnessed
-    wallet.ChainTip(&index1, &block1, sproutTree, saplingTree, true);
+    wallet.ChainTip(&index1, &block1, std::make_pair(sproutTree, saplingTree));
 
     // Second block
     CBlock block2;
@@ -365,7 +368,7 @@ double benchmark_increment_sprout_note_witnesses(size_t nTxs)
 
     struct timeval tv_start;
     timer_start(tv_start);
-    wallet.ChainTip(&index2, &block2, sproutTree, saplingTree, true);
+    wallet.ChainTip(&index2, &block2, std::make_pair(sproutTree, saplingTree));
     return timer_stop(tv_start);
 }
 
@@ -397,7 +400,7 @@ double benchmark_increment_sapling_note_witnesses(size_t nTxs)
     SaplingMerkleTree saplingTree;
 
     auto saplingSpendingKey = GetTestMasterSaplingSpendingKey();
-    wallet.AddSaplingSpendingKey(saplingSpendingKey, saplingSpendingKey.DefaultAddress());
+    wallet.AddSaplingSpendingKey(saplingSpendingKey);
 
     // First block
     CBlock block1;
@@ -411,7 +414,7 @@ double benchmark_increment_sapling_note_witnesses(size_t nTxs)
     index1.nHeight = 1;
 
     // Increment to get transactions witnessed
-    wallet.ChainTip(&index1, &block1, sproutTree, saplingTree, true);
+    wallet.ChainTip(&index1, &block1, std::make_pair(sproutTree, saplingTree));
 
     // Second block
     CBlock block2;
@@ -427,7 +430,7 @@ double benchmark_increment_sapling_note_witnesses(size_t nTxs)
 
     struct timeval tv_start;
     timer_start(tv_start);
-    wallet.ChainTip(&index2, &block2, sproutTree, saplingTree, true);
+    wallet.ChainTip(&index2, &block2, std::make_pair(sproutTree, saplingTree));
     return timer_stop(tv_start);
 }
 
@@ -542,7 +545,7 @@ double benchmark_connectblock_slow()
 
     // Undo alterations to global state
     mapBlockIndex.erase(hashPrev);
-    SelectParamsFromCommandLine();
+    SelectParams(ChainNameFromCommandLine());
 
     return duration;
 }
@@ -593,14 +596,14 @@ double benchmark_create_sapling_spend()
     auto sk = libzcash::SaplingSpendingKey::random();
     auto expsk = sk.expanded_spending_key();
     auto address = sk.default_address();
-    SaplingNote note(address, GetRand(MAX_MONEY));
+    SaplingNote note(address, GetRand(MAX_MONEY), libzcash::Zip212Enabled::BeforeZip212);
     SaplingMerkleTree tree;
-    auto maybe_cm = note.cm();
-    tree.append(maybe_cm.get());
+    auto maybe_cmu = note.cmu();
+    tree.append(maybe_cmu.get());
     auto anchor = tree.root();
     auto witness = tree.witness();
     auto maybe_nf = note.nullifier(expsk.full_viewing_key(), witness.position());
-    if (!(maybe_cm && maybe_nf)) {
+    if (!(maybe_cmu && maybe_nf)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Could not create note commitment and nullifier");
     }
 
@@ -617,12 +620,13 @@ double benchmark_create_sapling_spend()
     timer_start(tv_start);
 
     SpendDescription sdesc;
+    uint256 rcm = note.rcm();
     bool result = librustzcash_sapling_spend_proof(
         ctx,
         expsk.full_viewing_key().ak.begin(),
         expsk.nsk.begin(),
         note.d.data(),
-        note.r.begin(),
+        rcm.begin(),
         alpha.begin(),
         note.value(),
         anchor.begin(),
@@ -645,7 +649,7 @@ double benchmark_create_sapling_output()
     auto address = sk.default_address();
 
     std::array<unsigned char, ZC_MEMO_SIZE> memo;
-    SaplingNote note(address, GetRand(MAX_MONEY));
+    SaplingNote note(address, GetRand(MAX_MONEY),  libzcash::Zip212Enabled::BeforeZip212);
 
     libzcash::SaplingNotePlaintext notePlaintext(note, memo);
     auto res = notePlaintext.encrypt(note.pk_d);
@@ -656,18 +660,22 @@ double benchmark_create_sapling_output()
     auto enc = res.get();
     auto encryptor = enc.second;
 
+    CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+    ss << address;
+    std::vector<unsigned char> addressBytes(ss.begin(), ss.end());
+
     auto ctx = librustzcash_sapling_proving_ctx_init();
 
     struct timeval tv_start;
     timer_start(tv_start);
 
     OutputDescription odesc;
+    uint256 rcm = note.rcm();
     bool result = librustzcash_sapling_output_proof(
         ctx,
         encryptor.get_esk().begin(),
-        note.d.data(),
-        note.pk_d.begin(),
-        note.r.begin(),
+        addressBytes.data(),
+        rcm.begin(),
         note.value(),
         odesc.cv.begin(),
         odesc.zkproof.begin());
@@ -731,7 +739,7 @@ double benchmark_verify_sapling_output()
     bool result = librustzcash_sapling_check_output(
                 ctx,
                 output.cv.begin(),
-                output.cm.begin(),
+                output.cmu.begin(),
                 output.ephemeralKey.begin(),
                 output.zkproof.begin()
             );

@@ -37,7 +37,9 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "sendtoaddress", 4 },
     { "settxfee", 0 },
     { "getreceivedbyaddress", 1 },
+    { "getreceivedbyaddress", 2 },
     { "getreceivedbyaccount", 1 },
+    { "getreceivedbyaccount", 2 },
     { "listreceivedbyaddress", 0 },
     { "listreceivedbyaddress", 1 },
     { "listreceivedbyaddress", 2 },
@@ -46,6 +48,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "listreceivedbyaccount", 2 },
     { "getbalance", 1 },
     { "getbalance", 2 },
+    { "getbalance", 3 },
     { "getblockhash", 0 },
     { "move", 2 },
     { "move", 3 },
@@ -89,6 +92,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "lockunspent", 1 },
     { "importprivkey", 2 },
     { "importaddress", 2 },
+    { "importaddress", 3 },
+    { "importpubkey", 2 },
     { "verifychain", 0 },
     { "verifychain", 1 },
     { "keypoolrefill", 0 },
@@ -123,6 +128,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "z_listunspent", 2 },
     { "z_listunspent", 3 },
     { "z_getbalance", 1},
+    { "z_getbalance", 2},
     { "z_gettotalbalance", 0},
     { "z_gettotalbalance", 1},
     { "z_gettotalbalance", 2},
@@ -142,6 +148,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "z_getpaymentdisclosure", 1},
     { "z_getpaymentdisclosure", 2},
     { "z_setmigration", 0},
+    { "z_getnotescount", 0},
 };
 
 class CRPCConvertTable

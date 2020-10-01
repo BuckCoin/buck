@@ -119,7 +119,7 @@ function zcashd_massif_stop {
 function zcashd_valgrind_start {
     rm -rf "$DATADIR"
     mkdir -p "$DATADIR/regtest"
-    touch "$DATADIR/buck.conf"
+    touch "$DATADIR/zcash.conf"
     rm -f valgrind.out
     valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/zcashd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
     ZCASHD_PID=$!

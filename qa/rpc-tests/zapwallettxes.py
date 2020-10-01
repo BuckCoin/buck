@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2014 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
-# file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
+# file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.authproxy import JSONRPCException
@@ -26,22 +24,22 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         self.sync_all()
 
     def run_test (self):
-        print "Mining blocks..."
+        print("Mining blocks...")
         self.nodes[0].generate(4)
         self.sync_all()
         self.nodes[1].generate(101)
         self.sync_all()
 
-        assert_equal(self.nodes[0].getbalance(), 4000)
+        assert_equal(self.nodes[0].getbalance(), 40)
 
-        txid0 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1100)
-        txid1 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1000)
+        txid0 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 11)
+        txid1 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 10)
         self.sync_all()
         self.nodes[0].generate(1)
         self.sync_all()
 
-        txid2 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 1100)
-        txid3 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 500)
+        txid2 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 11)
+        txid3 = self.nodes[0].sendtoaddress(self.nodes[2].getnewaddress(), 5)
 
         tx0 = self.nodes[0].gettransaction(txid0)
         assert_equal(tx0['txid'], txid0) # tx0 must be available (confirmed)
@@ -72,8 +70,8 @@ class ZapWalletTXesTest (BitcoinTestFramework):
         aException = False
         try:
             tx3 = self.nodes[0].gettransaction(txid3)
-        except JSONRPCException,e:
-            print e
+        except JSONRPCException as e:
+            print(e)
             aException = True
 
         assert_equal(aException, True) # there must be a expection because the unconfirmed wallettx0 must be gone by now

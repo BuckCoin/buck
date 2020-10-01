@@ -32,6 +32,15 @@ struct CCheckpointData {
     double fTransactionsPerDay;
 };
 
+class CBaseKeyConstants : public KeyConstants {
+public:
+    const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+    const std::string& Bech32HRP(Bech32Type type) const { return bech32HRPs[type]; }
+
+    std::vector<unsigned char> base58Prefixes[KeyConstants::MAX_BASE58_TYPES];
+    std::string bech32HRPs[KeyConstants::MAX_BECH32_TYPES];
+};
+
 /**
  * CChainParams defines various tweakable parameters of a given instance of the
  * Bitcoin system. There are three: the main network on which people trade goods
@@ -39,32 +48,9 @@ struct CCheckpointData {
  * a regression test mode which is intended for private networks only. It has
  * minimal difficulty to ensure that blocks can be found instantly.
  */
-class CChainParams
+class CChainParams: public KeyConstants 
 {
 public:
-    enum Base58Type {
-        PUBKEY_ADDRESS,
-        SCRIPT_ADDRESS,
-        SECRET_KEY,
-        EXT_PUBLIC_KEY,
-        EXT_SECRET_KEY,
-
-        ZCPAYMENT_ADDRRESS,
-        ZCSPENDING_KEY,
-        ZCVIEWING_KEY,
-
-        MAX_BASE58_TYPES
-    };
-
-    enum Bech32Type {
-        SAPLING_PAYMENT_ADDRESS,
-        SAPLING_FULL_VIEWING_KEY,
-        SAPLING_INCOMING_VIEWING_KEY,
-        SAPLING_EXTENDED_SPEND_KEY,
-
-        MAX_BECH32_TYPES
-    };
-
     const Consensus::Params& GetConsensus() const { return consensus; }
     const CMessageHeader::MessageStartChars& MessageStart() const { return pchMessageStart; }
     const std::vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
@@ -92,16 +78,17 @@ public:
     /** Return the BIP70 network string (main, test or regtest) */
     std::string NetworkIDString() const { return strNetworkID; }
     const std::vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
-    const std::string& Bech32HRP(Bech32Type type) const { return bech32HRPs[type]; }
+    const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { 
+        return keyConstants.Base58Prefix(type); 
+    }
+    const std::string& Bech32HRP(Bech32Type type) const { 
+        return keyConstants.Bech32HRP(type); 
+    }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
     /** Return the founder's reward address and script for a given block height */
-    std::string GetFoundersRewardAddressAtHeight(int height) const;
-    CScript GetFoundersRewardScriptAtHeight(int height) const;
-    std::string GetFoundersRewardAddressAtIndex(int i) const;
     /** Enforce coinbase consensus rule in regtest mode */
-    void SetRegTestCoinbaseMustBeProtected() { consensus.fCoinbaseMustBeProtected = true; }
+    void SetRegTestCoinbaseMustBeShielded() { consensus.fCoinbaseMustBeShielded = true; }
 protected:
     CChainParams() {}
 
@@ -112,8 +99,7 @@ protected:
     int nDefaultPort = 0;
     uint64_t nPruneAfterHeight = 0;
     std::vector<CDNSSeedData> vSeeds;
-    std::vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
-    std::string bech32HRPs[MAX_BECH32_TYPES];
+    CBaseKeyConstants keyConstants;
     std::string strNetworkID;
     std::string strCurrencyUnits;
     uint32_t bip44CoinType;
@@ -139,17 +125,16 @@ protected:
  */
 const CChainParams &Params();
 
-/** Return parameters for the given network. */
-CChainParams &Params(CBaseChainParams::Network network);
-
-/** Sets the params returned by Params() to those for the given network. */
-void SelectParams(CBaseChainParams::Network network);
+/**
+ * @returns CChainParams for the given BIP70 chain name.
+ */
+CChainParams& Params(const std::string& chain);
 
 /**
- * Looks for -regtest or -testnet and then calls SelectParams as appropriate.
- * Returns false if an invalid combination is given.
+ * Sets the params returned by Params() to those for the given BIP70 chain name.
+ * @throws std::runtime_error when the chain is not supported.
  */
-bool SelectParamsFromCommandLine();
+void SelectParams(const std::string& chain);
 
 /**
  * Allows modifying the network upgrade regtest parameters.
@@ -157,5 +142,10 @@ bool SelectParamsFromCommandLine();
 void UpdateNetworkUpgradeParameters(Consensus::UpgradeIndex idx, int nActivationHeight);
 
 void UpdateRegtestPow(int64_t nPowMaxAdjustDown, int64_t nPowMaxAdjustUp, uint256 powLimit);
+
+/**
+ * Allows modifying the regtest funding stream parameters.
+ */
+void UpdateFundingStreamParameters(Consensus::FundingStreamIndex idx, Consensus::FundingStream fs);
 
 #endif // BITCOIN_CHAINPARAMS_H

@@ -3,6 +3,7 @@
 
 #include "consensus/validation.h"
 #include "main.h"
+#include "proof_verifier.h"
 #include "utiltest.h"
 #include "zcash/Proof.hpp"
 
@@ -24,7 +25,7 @@ public:
 };
 
 TEST(CheckBlock, VersionTooLow) {
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
 
     CBlock block;
     block.nVersion = 1;
@@ -47,9 +48,6 @@ TEST(CheckBlock, BlockSproutRejectsBadVersion) {
     mtx.vout.resize(1);
     mtx.vout[0].scriptPubKey = CScript() << OP_TRUE;
     mtx.vout[0].nValue = 0;
-    mtx.vout.push_back(CTxOut(
-        GetBlockSubsidy(1, Params().GetConsensus())/5,
-        Params().GetFoundersRewardScriptAtHeight(1)));
     mtx.fOverwintered = false;
     mtx.nVersion = -1;
     mtx.nVersionGroupId = 0;
@@ -61,7 +59,7 @@ TEST(CheckBlock, BlockSproutRejectsBadVersion) {
     MockCValidationState state;
     CBlockIndex indexPrev {Params().GenesisBlock()};
 
-    auto verifier = libzcash::ProofVerifier::Strict();
+    auto verifier = ProofVerifier::Strict();
 
     EXPECT_CALL(state, DoS(100, false, REJECT_INVALID, "bad-txns-version-too-low", false)).Times(1);
     EXPECT_FALSE(CheckBlock(block, state, Params(), verifier, false, false));
@@ -70,11 +68,11 @@ TEST(CheckBlock, BlockSproutRejectsBadVersion) {
 
 class ContextualCheckBlockTest : public ::testing::Test {
 protected:
-    virtual void SetUp() {
+    void SetUp() override {
         SelectParams(CBaseChainParams::MAIN);
     }
 
-    virtual void TearDown() {
+    void TearDown() override {
         // Revert to test default. No-op on mainnet params.
         RegtestDeactivateSapling();
     }
@@ -94,11 +92,6 @@ protected:
         mtx.vout.resize(1);
         mtx.vout[0].scriptPubKey = CScript() << OP_TRUE;
         mtx.vout[0].nValue = 0;
-
-        // Give it a Founder's Reward vout for height 1.
-        mtx.vout.push_back(CTxOut(
-                    GetBlockSubsidy(1, Params().GetConsensus())/5,
-                    Params().GetFoundersRewardScriptAtHeight(1)));
 
         return mtx;
     }
@@ -154,10 +147,6 @@ TEST_F(ContextualCheckBlockTest, BadCoinbaseHeight) {
     MockCValidationState state;
     EXPECT_TRUE(ContextualCheckBlock(block, state, Params(), NULL));
 
-    // Give the transaction a Founder's Reward vout
-    mtx.vout.push_back(CTxOut(
-                GetBlockSubsidy(1, Params().GetConsensus())/5,
-                Params().GetFoundersRewardScriptAtHeight(1)));
 
     // Treating block as non-genesis should fail
     CTransaction tx2 {mtx};
@@ -234,10 +223,39 @@ TEST_F(ContextualCheckBlockTest, BlockSaplingRulesAcceptSaplingTx) {
     ExpectValidBlockFromTx(CTransaction(mtx));
 }
 
+
+// Test that a block evaluated under Blossom rules can contain Blossom transactions.
+TEST_F(ContextualCheckBlockTest, BlockBlossomRulesAcceptBlossomTx) {
+    SelectParams(CBaseChainParams::REGTEST);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, 1);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_BLOSSOM, 1);
+
+    CMutableTransaction mtx = GetFirstBlockCoinbaseTx();
+
+    // Make it a Blossom transaction (using Sapling version/group id).
+    mtx.fOverwintered = true;
+    mtx.nVersion = SAPLING_TX_VERSION;
+    mtx.nVersionGroupId = SAPLING_VERSION_GROUP_ID;
+
+    SCOPED_TRACE("BlockBlossomRulesAcceptBlossomTx");
+    ExpectValidBlockFromTx(CTransaction(mtx));
+}
+
+
 // TEST PLAN: next, check that each ruleset will not accept other transaction
-// types. Currently (May 2018) this means we'll test Sprout-Overwinter,
-// Sprout-Sapling, Overwinter-Sprout, Overwinter-Sapling, Sapling-Sprout, and
-// Sapling-Overwinter.
+// types. Currently (February 2020) this means with each of four *branches* active
+// (Sprout, Overwinter, Sapling, Blossom), we'll test that transactions for tx
+// *versions* not valid on that branch are rejected.
+//
+// Note that Sapling and Blossom transactions use the same tx version and version
+// group id, but different consensus branch ids. These tests use transactions with
+// no inputs and only a transparent output, therefore they are not signed and do not
+// depend on the consensus branch id. Testing that Sapling rejects transactions that
+// are signed for Blossom, and vice versa, is outside the scope of these tests.
+//
+// TODO: Change the testing approach to not require O(branches * versions) code.
+
 
 // Test that a block evaluated under Sprout rules cannot contain non-Sprout
 // transactions which require Overwinter to be active.  This test assumes that
@@ -252,7 +270,7 @@ TEST_F(ContextualCheckBlockTest, BlockSproutRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockSproutRulesRejectOverwinterTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 0, "tx-overwinter-not-active");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwinter-not-active");
     }
 
     // Make it a Sapling transaction
@@ -262,7 +280,7 @@ TEST_F(ContextualCheckBlockTest, BlockSproutRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockSproutRulesRejectSaplingTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 0, "tx-overwinter-not-active");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwinter-not-active");
     }
 };
 
@@ -280,7 +298,7 @@ TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockOverwinterRulesRejectSproutTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwinter-active");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwintered-flag-not-set");
     }
 
     // Make it a Sapling transaction
@@ -290,7 +308,7 @@ TEST_F(ContextualCheckBlockTest, BlockOverwinterRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockOverwinterRulesRejectSaplingTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 0, "bad-overwinter-tx-version-group-id");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "bad-tx-overwinter-version-too-high");
     }
 }
 
@@ -308,7 +326,7 @@ TEST_F(ContextualCheckBlockTest, BlockSaplingRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockSaplingRulesRejectSproutTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwinter-active");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwintered-flag-not-set");
     }
 
     // Make it an Overwinter transaction
@@ -318,6 +336,35 @@ TEST_F(ContextualCheckBlockTest, BlockSaplingRulesRejectOtherTx) {
 
     {
         SCOPED_TRACE("BlockSaplingRulesRejectOverwinterTx");
-        ExpectInvalidBlockFromTx(CTransaction(mtx), 0, "bad-sapling-tx-version-group-id");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "bad-sapling-tx-version-group-id");
+    }
+}
+
+
+// Test block evaluated under Blossom rules cannot contain non-Blossom transactions.
+TEST_F(ContextualCheckBlockTest, BlockBlossomRulesRejectOtherTx) {
+    SelectParams(CBaseChainParams::REGTEST);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_OVERWINTER, 1);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_SAPLING, 1);
+    UpdateNetworkUpgradeParameters(Consensus::UPGRADE_BLOSSOM, 1);
+
+    CMutableTransaction mtx = GetFirstBlockCoinbaseTx();
+
+    // Set the version to Sprout+JoinSplit (but nJoinSplit will be 0).
+    mtx.nVersion = 2;
+
+    {
+        SCOPED_TRACE("BlockBlossomRulesRejectSproutTx");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "tx-overwintered-flag-not-set");
+    }
+
+    // Make it an Overwinter transaction
+    mtx.fOverwintered = true;
+    mtx.nVersion = OVERWINTER_TX_VERSION;
+    mtx.nVersionGroupId = OVERWINTER_VERSION_GROUP_ID;
+
+    {
+        SCOPED_TRACE("BlockBlossomRulesRejectOverwinterTx");
+        ExpectInvalidBlockFromTx(CTransaction(mtx), 100, "bad-sapling-tx-version-group-id");
     }
 }

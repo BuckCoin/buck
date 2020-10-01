@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2014 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://www.opensource.org/licenses/mit-license.php .
@@ -7,8 +7,6 @@
 # Test resurrection of mined transactions when
 # the blockchain is re-organized.
 #
-
-import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, start_node
@@ -46,16 +44,17 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
 
         b = [ self.nodes[0].getblockhash(n) for n in range(1, 4) ]
         coinbase_txids = [ self.nodes[0].getblock(h)['tx'][0] for h in b ]
-        spends1_raw = [ self.create_tx(txid, node0_address, 1000) for txid in coinbase_txids ]
+        spends1_raw = [ self.create_tx(txid, node0_address, 10) for txid in coinbase_txids ]
         spends1_id = [ self.nodes[0].sendrawtransaction(tx) for tx in spends1_raw ]
 
         blocks = []
         blocks.extend(self.nodes[0].generate(1))
 
-        spends2_raw = [ self.create_tx(txid, node0_address, 9999.999) for txid in spends1_id ]
+        spends2_raw = [ self.create_tx(txid, node0_address, 9.999) for txid in spends1_id ]
         spends2_id = [ self.nodes[0].sendrawtransaction(tx) for tx in spends2_raw ]
 
         blocks.extend(self.nodes[0].generate(1))
+        self.sync_all()
 
         # mempool should be empty, all txns confirmed
         assert_equal(set(self.nodes[0].getrawmempool()), set())
@@ -76,6 +75,8 @@ class MempoolCoinbaseTest(BitcoinTestFramework):
 
         # Generate another block, they should all get mined
         self.nodes[0].generate(1)
+        self.sync_all()
+
         # mempool should be empty, all txns confirmed
         assert_equal(set(self.nodes[0].getrawmempool()), set())
         for txid in spends1_id+spends2_id:

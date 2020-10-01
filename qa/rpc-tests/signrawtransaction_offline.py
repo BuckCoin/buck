@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
+#!/usr/bin/env python3
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_true, initialize_chain_clean, start_node
@@ -9,20 +7,20 @@ from test_framework.authproxy import JSONRPCException
 class SignOfflineTest (BitcoinTestFramework):
     # Setup Methods
     def setup_chain(self):
-        print "Initializing test directory " + self.options.tmpdir
+        print("Initializing test directory " + self.options.tmpdir)
         initialize_chain_clean(self.options.tmpdir, 2)
 
     def setup_network(self):
-        self.nodes = [ start_node(0, self.options.tmpdir, ["-nuparams=5ba81b19:10"]) ]
+        self.nodes = [ start_node(0, self.options.tmpdir, ["-nuparams=2bb40e60:10"]) ]
         self.is_network_split = False
         self.sync_all()
 
     # Tests
     def run_test(self):
-        print "Mining blocks..."
+        print("Mining blocks...")
         self.nodes[0].generate(101)
 
-        offline_node = start_node(1, self.options.tmpdir, ["-maxconnections=0", "-nuparams=5ba81b19:10"])
+        offline_node = start_node(1, self.options.tmpdir, ["-maxconnections=0", "-nuparams=2bb40e60:10"])
         self.nodes.append(offline_node)
 
         assert_equal(0, len(offline_node.getpeerinfo())) # make sure node 1 has no peers
@@ -49,7 +47,7 @@ class SignOfflineTest (BitcoinTestFramework):
             pass
 
         # Passing in the consensus branch id resolves the issue for offline regtest nodes.
-        signed_tx = offline_node.signrawtransaction(create_hex, sign_inputs, privkeys, "ALL", "5ba81b19")
+        signed_tx = offline_node.signrawtransaction(create_hex, sign_inputs, privkeys, "ALL", "2bb40e60")
 
         # If we return the transaction hash, then we have have not thrown an error (success)
         online_tx_hash = self.nodes[0].sendrawtransaction(signed_tx['hex'])

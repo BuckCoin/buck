@@ -1,6 +1,6 @@
 // Copyright (c) 2012-2015 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
 
 #include "script/script.h"
 #include "test/test_bitcoin.h"
@@ -47,12 +47,12 @@ BOOST_AUTO_TEST_CASE(IsPayToPublicKeyHash)
     static const unsigned char missing2[] = {
         OP_DUP, OP_HASH160, 20, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     };
-    BOOST_CHECK(!CScript(missing2, missing2+sizeof(missing)).IsPayToPublicKeyHash());
+    BOOST_CHECK(!CScript(missing2, missing2+sizeof(missing2)).IsPayToPublicKeyHash());
 
     static const unsigned char tooshort[] = {
         OP_DUP, OP_HASH160, 2, 0,0, OP_EQUALVERIFY, OP_CHECKSIG
     };
-    BOOST_CHECK(!CScript(tooshort, tooshort+sizeof(direct)).IsPayToPublicKeyHash());
+    BOOST_CHECK(!CScript(tooshort, tooshort+sizeof(tooshort)).IsPayToPublicKeyHash());
 
 }
 

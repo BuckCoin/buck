@@ -11,13 +11,16 @@ UniValue SendTransaction(CTransaction& tx, boost::optional<CReserveKey&> reserve
     // Send the transaction
     if (!testmode) {
         CWalletTx wtx(pwalletMain, tx);
-        pwalletMain->CommitTransaction(wtx, reservekey);
-        o.push_back(Pair("txid", tx.GetHash().ToString()));
+        if (!pwalletMain->CommitTransaction(wtx, reservekey)) {
+            // More details in debug.log
+            throw JSONRPCError(RPC_WALLET_ERROR, "SendTransaction: CommitTransaction failed");
+        }
+        o.pushKV("txid", tx.GetHash().ToString());
     } else {
         // Test mode does not send the transaction to the network.
-        o.push_back(Pair("test", 1));
-        o.push_back(Pair("txid", tx.GetHash().ToString()));
-        o.push_back(Pair("hex", EncodeHexTx(tx)));
+        o.pushKV("test", 1);
+        o.pushKV("txid", tx.GetHash().ToString());
+        o.pushKV("hex", EncodeHexTx(tx));
     }
     return o;
 }

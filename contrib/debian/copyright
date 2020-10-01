@@ -7,12 +7,82 @@ Files: *
 Copyright: 
  2018-2019 Buck developers
  2017-2019 BitcoinZ
- 2016-2017, The Zcash developers
- 2009-2017, Bitcoin Core developers
+ 2016-2020, The Zcash developers
+ 2009-2020, Bitcoin Core developers
 License: Expat
-Comment: The Bitcoin Core developers encompasses the current developers listed on bitcoin.org,
- as well as the numerous contributors to the project.
- The Zcash developers are listed at https://z.cash/team.html.
+Comment: The Bitcoin Core developers encompasses the current developers listed on
+ bitcoin.org, as well as the numerous contributors to the project.
+ The Zcash developers are listed at https://z.cash/team.html and in doc/authors.md.
+ This copyright entry excludes files explicitly listed below.
+
+Files: build-aux/m4/ax_boost_base.m4
+Copyright: 2008, Thomas Porschberg <thomas@randspringer.de>
+ 2009, Peter Adolphs
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_chrono.m4
+Copyright: 2012, Xiyue Deng <manphiz@gmail.com>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_filesystem.m4
+Copyright: 2009, Thomas Porschberg <thomas@randspringer.de>
+ 2009, Michael Tindal
+ 2009, Roman Rybalko <libtorrent@romanr.info>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_program_options.m4
+Copyright: 2009, Thomas Porschberg <thomas@randspringer.de>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_system.m4
+Copyright: 2008, Thomas Porschberg <thomas@randspringer.de>
+ 2008, Michael Tindal
+ 2008, Daniel Casimiro <dan.casimiro@gmail.com>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_thread.m4
+Copyright: 2009, Thomas Porschberg <thomas@randspringer.de>
+ 2009, Michael Tindal
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_boost_unit_test_framework.m4
+Copyright: 2008, Thomas Porschberg <thomas@randspringer.de>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_cxx_compile_stdcxx.m4
+Copyright: 2008, Benjamin Kosnik <bkoz@redhat.com>
+ 2012, Zack Weinberg <zackw@panix.com>
+ 2013, Roy Stogner <roystgnr@ices.utexas.edu>
+ 2014-2015, Google Inc.; contributed by Alexey Sokolov <sokolov@google.com>
+ 2015, Paul Norman <penorman@mac.com>
+ 2015, Moritz Klammler <moritz@klammler.eu>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_gcc_func_attribute.m4
+Copyright: 2013, Gabriele Svelto <gabriele.svelto@gmail.com>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/l_atomic.m4
+Copyright: 2015, Tim Kosse <tim.kosse@filezilla-project.org>
+License: GNU-All-permissive-License
+
+Files: build-aux/m4/ax_check_compile_flag.m4
+ build-aux/m4/ax_check_link_flag.m4
+ build-aux/m4/ax_check_preproc_flag.m4
+Copyright: 2008, Guido U. Draheim <guidod@gmx.de>
+ 2011, Maarten Bosmans <mkbosmans@gmail.com>
+License: GPLv3-or-later-with-Autoconf-exception
+
+Files: build-aux/m4/ax_pthread.m4
+Copyright: 2008, Steven G. Johnson <stevenj@alum.mit.edu>
+ 2011, Daniel Richard G. <skunk@iSKUNK.ORG>
+License: GPLv3-or-later-with-Autoconf-exception
+
+Files: qa/zcash/checksec.sh
+Copyright: 2014-2015, Brian Davis
+ 2013, Robin David
+ 2009-2011, Tobias Klein
+License: BSD-3clause-Tobias-Klein
 
 Files: depends/sources/libsodium-*.tar.gz
 Copyright: 2013-2016 Frank Denis
@@ -58,9 +128,27 @@ Files: depends/sources/google*.tar.gz
 Copyright: 2008 Google Inc.
 License: BSD-3clause-Google
 
-Files: depends/sources/qpid-proton-*.tar.gz
-Copyright: 2012-2017 The Apache Software Foundation
-License: Apache-Qpid-Proton-with-BSD-Subcomponents
+Files: depends/sources/utfcpp-*.tar.gz
+Copyright: 2006 Nemanja Trifunovic
+License: Boost-Software-License-1.0
+
+Files: src/crypto/ctaes/*
+Copyright: Copyright (c) 2016 Pieter Wuille
+License: Expat
+
+Files: src/rust/include/tracing.h
+ src/rust/src/tracing_ffi.rs
+Copyright: Copyright (c) 2020 Jack Grigg
+License: Expat
+
+Files: src/rust/include/tracing/map.h
+Copyright: Copyright (c) 2012 William Swanson
+License: Expat-with-advertising-clause
+
+Files: src/secp256k1/*
+Copyright: Copyright (c) 2013 Pieter Wuille
+License: Expat
+Comment: This copyright entry excludes files explicitly listed below.
 
 Files: src/secp256k1/build-aux/m4/ax_jni_include_dir.m4
 Copyright: 2008 Don Anderson <dda@sleepycat.com>
@@ -69,6 +157,11 @@ License: GNU-All-permissive-License
 Files: src/secp256k1/build-aux/m4/ax_prog_cc_for_build.m4
 Copyright: 2008 Paolo Bonzini <bonzini@gnu.org>
 License: GNU-All-permissive-License
+
+Files src/leveldb/*
+Copyright: 2011, The LevelDB Authors
+License: BSD-3clause-Google
+Comment: The LevelDB Authors are listed in src/leveldb/AUTHORS.
 
 License: Boost-Software-License-1.0
  Permission is hereby granted, free of charge, to any person or organization

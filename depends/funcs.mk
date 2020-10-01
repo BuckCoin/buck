@@ -19,30 +19,17 @@ define int_get_all_dependencies
 $(sort $(foreach dep,$(2),$(2) $(call int_get_all_dependencies,$(1),$($(dep)_dependencies))))
 endef
 
+define download_and_check_file
+($(build_DOWNLOAD) "$(1)/$(2).temp" $(3) && echo "$(4)  $(1)/$(2).temp" > $(1)/.$(2).hash && $(build_SHA256SUM) -c $(1)/.$(2).hash)
+endef
+
 define fetch_file
 (test -f $$($(1)_source_dir)/$(4) || \
   ( mkdir -p $$($(1)_download_dir) && echo Fetching $(1)... && \
-  ( $(build_DOWNLOAD) "$$($(1)_download_dir)/$(4).temp" "$(PRIORITY_DOWNLOAD_PATH)/$(4)" || \
-    $(build_DOWNLOAD) "$$($(1)_download_dir)/$(4).temp" "$(2)/$(3)" ) && \
-    echo "$(5)  $$($(1)_download_dir)/$(4).temp" > $$($(1)_download_dir)/.$(4).hash && \
-    $(build_SHA256SUM) -c $$($(1)_download_dir)/.$(4).hash && \
+  ( $(call download_and_check_file,$$($(1)_download_dir),$(4),"$(2)/$(3)",$(5)) || \
+    $(call download_and_check_file,$$($(1)_download_dir),$(4),"$(FALLBACK_DOWNLOAD_PATH)/$(4)",$(5)) ) && \
     mv $$($(1)_download_dir)/$(4).temp $$($(1)_source_dir)/$(4) && \
     rm -rf $$($(1)_download_dir) ))
-endef
-
-define generate_crate_checksum
-$(BASEDIR)/cargo-checksum.sh "$($(1)_file_name)" "$(build_SHA256SUM)" "\"$($(1)_sha256_hash)\""
-endef
-
-define generate_unpackaged_crate_checksum
-$(BASEDIR)/cargo-checksum.sh "$($(1)_file_name)" "$(build_SHA256SUM)" "null"
-endef
-
-define vendor_crate_source
-mkdir -p $($(1)_staging_prefix_dir)/$(CRATE_REGISTRY) && \
-cp -r $($(1)_extract_dir) $($(1)_staging_prefix_dir)/$(CRATE_REGISTRY)/$($(1)_crate_name) && \
-cd $($(1)_staging_prefix_dir)/$(CRATE_REGISTRY)/$($(1)_crate_versioned_name) && \
-rm -r `basename $($(1)_patch_dir)` .stamp_* .$($(1)_file_name).hash
 endef
 
 define int_get_build_recipe_hash
@@ -52,7 +39,7 @@ endef
 
 define int_get_build_id
 $(eval $(1)_dependencies += $($(1)_$(host_arch)_$(host_os)_dependencies) $($(1)_$(host_os)_dependencies))
-$(eval $(1)_all_dependencies:=$(call int_get_all_dependencies,$(1),$($($(1)_type)_native_toolchain) $($(1)_dependencies)))
+$(eval $(1)_all_dependencies:=$(call int_get_all_dependencies,$(1),$($($(1)_type)_native_toolchain) $($($(1)_type)_native_binutils) $($(1)_dependencies)))
 $(foreach dep,$($(1)_all_dependencies),$(eval $(1)_build_id_deps+=$(dep)-$($(dep)_version)-$($(dep)_recipe_hash)))
 $(eval $(1)_build_id_long:=$(1)-$($(1)_version)-$($(1)_recipe_hash)-$(release_type) $($(1)_build_id_deps))
 $(eval $(1)_build_id:=$(shell echo -n "$($(1)_build_id_long)" | $(build_SHA256SUM) | cut -c-$(HASH_LENGTH)))
@@ -61,10 +48,10 @@ final_build_id_long+=$($(package)_build_id_long)
 #override platform specific files and hashes
 $(eval $(1)_file_name=$(if $($(1)_exact_file_name),$($(1)_exact_file_name),$(if $($(1)_file_name_$(host_os)),$($(1)_file_name_$(host_os)),$($(1)_file_name))))
 $(eval $(1)_sha256_hash=$(if $($(1)_exact_sha256_hash),$($(1)_exact_sha256_hash),$(if $($(1)_sha256_hash_$(host_os)),$($(1)_sha256_hash_$(host_os)),$($(1)_sha256_hash))))
+$(eval $(1)_download_file=$(if $($(1)_exact_download_file),$($(1)_exact_download_file),$(if $($(1)_download_file_$(host_os)),$($(1)_download_file_$(host_os)),$(if $($(1)_download_file),$($(1)_download_file),$($(1)_file_name)))))
 
 #compute package-specific paths
 $(1)_build_subdir?=.
-$(1)_download_file?=$($(1)_file_name)
 $(1)_source_dir:=$(SOURCES_PATH)
 $(1)_source:=$$($(1)_source_dir)/$($(1)_file_name)
 $(1)_staging_dir=$(base_staging_dir)/$(host)/$(1)/$($(1)_version)-$($(1)_build_id)
@@ -91,8 +78,9 @@ $(1)_download_path_fixed=$(subst :,\:,$$($(1)_download_path))
 
 
 #default commands
+# The default behavior for tar will try to set ownership when running as uid 0 and may not succeed, --no-same-owner disables this behavior
 $(1)_fetch_cmds ?= $(call fetch_file,$(1),$(subst \:,:,$$($(1)_download_path_fixed)),$$($(1)_download_file),$($(1)_file_name),$($(1)_sha256_hash))
-$(1)_extract_cmds ?= mkdir -p $$($(1)_extract_dir) && echo "$$($(1)_sha256_hash)  $$($(1)_source)" > $$($(1)_extract_dir)/.$$($(1)_file_name).hash &&  $(build_SHA256SUM) -c $$($(1)_extract_dir)/.$$($(1)_file_name).hash && tar --strip-components=1 -xf $$($(1)_source)
+$(1)_extract_cmds ?= mkdir -p $$($(1)_extract_dir) && echo "$$($(1)_sha256_hash)  $$($(1)_source)" > $$($(1)_extract_dir)/.$$($(1)_file_name).hash &&  $(build_SHA256SUM) -c $$($(1)_extract_dir)/.$$($(1)_file_name).hash && tar --no-same-owner --strip-components=1 -xf $$($(1)_source)
 $(1)_preprocess_cmds ?=
 $(1)_build_cmds ?=
 $(1)_config_cmds ?=
@@ -193,7 +181,7 @@ $($(1)_preprocessed): | $($(1)_dependencies) $($(1)_extracted)
 	$(AT)touch $$@
 $($(1)_configured): | $($(1)_preprocessed)
 	$(AT)echo Configuring $(1)...
-	$(AT)rm -rf $(host_prefix); mkdir -p $(host_prefix)/lib; cd $(host_prefix); $(foreach package,$($(1)_all_dependencies), tar xf $($(package)_cached); )
+	$(AT)rm -rf $(host_prefix); mkdir -p $(host_prefix)/lib; cd $(host_prefix); $(foreach package,$($(1)_all_dependencies), tar --no-same-owner -xf $($(package)_cached); )
 	$(AT)mkdir -p $$(@D)
 	$(AT)+cd $$(@D); $($(1)_config_env) $(call $(1)_config_cmds, $(1))
 	$(AT)touch $$@
@@ -257,4 +245,4 @@ $(foreach package,$(all_packages),$(eval $(call int_config_attach_build_config,$
 $(foreach package,$(all_packages),$(eval $(call int_add_cmds,$(package))))
 
 #special exception: if a toolchain package exists, all non-native packages depend on it
-$(foreach package,$(packages),$(eval $($(package)_unpacked): |$($($(host_arch)_$(host_os)_native_toolchain)_cached) ))
+$(foreach package,$(packages),$(eval $($(package)_unpacked): |$($($(host_arch)_$(host_os)_native_toolchain)_cached) $($($(host_arch)_$(host_os)_native_binutils)_cached) ))
