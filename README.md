@@ -9,28 +9,32 @@ BUCK
 Project site: https://BUCK.red 
 
 Block Explorers: 
-      
-      - https://insight.BUCK.red
-      - https://explorer.BUCK.red 
+      https://insight.BUCK.red
+      https://explorer.BUCK.red 
 
 - Type: Cryptocurrency
 - Ticker: BUCK
-- Algo: Equihash
+- Algo: Equihash (200,9)
 - Max supply: 1 Billion BUCK coins 
 - Target block creation rate: 
-      
-      - 1,000 BUCK coins every 150 seconds up to block 500,000
-      - 500 BUCK coins every 150 seconds up to block 560,000
-      - 250 BUCK coins every 75 seconds after block 560,000 - 1,440,000
-      - 125 BUCK coins every 75 seconds after block 1,440,000 - 2,440,000
+
+      1,000 BUCK coins every 150 seconds up to block 500,000
+      500 BUCK coins every 150 seconds up to block 560,000
+      250 BUCK coins every 75 seconds after block 560,000 - 1,440,000
+      125 BUCK coins every 75 seconds after block 1,440,000 - 2,440,000
       
 - Current block size: 2MB every 75 seconds
 - Technology: Zcash
 - Protocols: 
-      - Sapling
-      - Overwinter
-      - Blossom
-      - Heartwood
+      
+      Sapling
+      Overwinter
+      Blossom
+      Heartwood
+
+- Protocols: 
+
+      DEV fees or taxes: None
 
 ## Buck Principles: 
 - All contributors are welcome
