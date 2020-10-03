@@ -896,11 +896,12 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
 
     LOCK(cs_main);
     int nHeight = (params.size()==1) ? params[0].get_int() : chainActive.Height();
+    int nextBlockHeight = nHeight + 1;
     if (nHeight < 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
 
     auto consensus = Params().GetConsensus();
-    CAmount nBlockSubsidy = GetBlockSubsidy(nHeight, consensus);
+    CAmount nBlockSubsidy = GetBlockSubsidy(nextBlockHeight, consensus);
     CAmount nMinerReward = nBlockSubsidy;
     CAmount nFoundersReward = 0;
     bool canopyActive = consensus.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_CANOPY);
