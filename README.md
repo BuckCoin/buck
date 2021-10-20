@@ -112,7 +112,7 @@ cd ..
 zcash-cli stop
 ```
 ### Windows
-Windows build is maintained in https://github.com/BuckCoin/buck-gui-wallet-win/releases project.
+Windows build is maintained in [buck-gui-wallet-win](https://github.com/BuckCoin/buck-gui-wallet-win/releases) project.
 
 Security Warnings
 -----------------
