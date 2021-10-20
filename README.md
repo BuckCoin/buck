@@ -111,7 +111,8 @@ cd ..
 # To stop Buck safely if it is running in daemon, close the application with zcash-cli stop
 zcash-cli stop
 ```
-
+### Windows
+Windows build is maintained in buck-gui-wallet-win project.
 
 Security Warnings
 -----------------
