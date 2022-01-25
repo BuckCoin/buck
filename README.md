@@ -6,11 +6,11 @@
 
 BUCK
 
-Project site: https://BUCK.red 
+Project site: https://BUCK.black 
 
 - Block Explorers: 
-  - https://insight.BUCK.red 
-  - https://explorer.BUCK.red 
+  - https://insight.BUCK.black 
+  - https://explorer.BUCK.black 
 - Type: Cryptocurrency
 - Ticker: BUCK
 - Algo: Equihash (200,9)
