@@ -9,8 +9,8 @@ BUCK
 Project site: https://BUCK.black 
 
 - Block Explorers: 
-  - https://insight.BUCK.black 
   - https://explorer.BUCK.black 
+  - https://iquidus.BUCK.black 
 - Type: Cryptocurrency
 - Ticker: BUCK
 - Algo: Equihash (200,9)
@@ -98,6 +98,7 @@ addnode=76.110.75.137
 addnode=52.14.3.137
 addnode=159.89.40.161
 addnode=45.55.35.219
+addnode=68.3.158.79
 # To save this new file, hit CTRL-X, then Y to save new file.
 # Change back to your home folder
 cd ..
