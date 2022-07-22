@@ -1,5 +1,5 @@
 ---
-name: "buck-4.0.0"
+name: "buck-4.0.2"
 enable_cache: true
 distro: "debian"
 suites:
