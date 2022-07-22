@@ -1,7 +1,7 @@
 # List of Postponed Dependency Updates
 #
 # The format is: name version expiration, e.g.
-# bdb 18.1.40 2020-09-01
+# bdb 18.1.40 2022-07-22
 #
 
 bdb 18.1.40 2021-01-20
@@ -69,7 +69,7 @@ crate_aesni 0.9.0 2020-11-01
 crate_crunchy 0.2.1 2020-11-01
 crate_crunchy 0.2.2 2020-11-01
 
-# These are being deferred until after 4.0.0 to avoid blocking the release.
+# These are being deferred until after 4.0.2 to avoid blocking the release.
 crate_time 0.1.44 2021-01-20
 crate_redox_users 0.3.5 2021-01-20
 
