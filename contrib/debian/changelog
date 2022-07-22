@@ -6,6 +6,6 @@ buck (2.0.3) stable; urgency=medium
 
 buck (1.4.0) stable; urgency=high
 
-  * 4.0.0 release.
+  * 4.0.2 release.
 
  -- Buck Team <team@buck.red>  
