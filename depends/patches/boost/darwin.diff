@@ -6,11 +6,11 @@ index 8d47741..641d8bb 100644
      common.handle-options darwin : $(condition) : $(command) : $(options) ;
      
      # - GCC 4.0 and higher in Darwin does not have -fcoalesce-templates.
--    if $(real-version) < "4.0.0"
+-    if $(real-version) < "4.0.2"
 -    {
 -        flags darwin.compile.c++ OPTIONS $(condition) : -fcoalesce-templates ;
 -    }
-+#    if $(real-version) < "4.0.0"
++#    if $(real-version) < "4.0.2"
 +#    {
 +#        flags darwin.compile.c++ OPTIONS $(condition) : -fcoalesce-templates ;
 +#    }
