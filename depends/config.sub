@@ -1597,7 +1597,7 @@ case $basic_machine in
 		os=-domain
 		;;
 	i386-sun)
-		os=-sunos4.0.2
+		os=-sunos4.0.0
 		;;
 	m68000-sun)
 		os=-sunos3
