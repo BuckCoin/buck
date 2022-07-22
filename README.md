@@ -1,6 +1,6 @@
 ![BUCK](https://i.imgur.com/RXp7QTz.png)
 
-# Buck 4.0.0 - The Future of Cryptocurrency
+# Buck 4.0.2 - The Future of Cryptocurrency
 
 **Keep running wallet to strengthen the Buck network. Backup your wallet in many locations & keep your coins wallet offline.**
 
