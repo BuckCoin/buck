@@ -1,6 +1,6 @@
 ![BUCK](https://i.imgur.com/RXp7QTz.png)
 
-# Buck 4.0.2 - The Future of Cryptocurrency
+# Buck 4.0.4 - The Future of Cryptocurrency
 
 **Keep running wallet to strengthen the Buck network. Backup your wallet in many locations & keep your coins wallet offline.**
 
@@ -87,6 +87,7 @@ cd .buck
 nano buck.conf
 # Insert the following into the new buck.conf file 
 addnode=38.242.200.119
+addnode=154.38.165.9
 addnode=202.181.27.3
 addnode=136.33.111.57
 addnode=34.83.236.138
@@ -95,6 +96,7 @@ addnode=96.30.196.44
 addnode=136.33.111.57
 addnode=84.234.52.190
 addnode=76.110.75.137
+addnode=81.182.248.126
 addnode=52.14.3.137
 addnode=159.89.40.161
 addnode=45.55.35.219
