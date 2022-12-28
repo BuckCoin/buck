@@ -69,7 +69,7 @@ crate_aesni 0.9.0 2020-11-01
 crate_crunchy 0.2.1 2020-11-01
 crate_crunchy 0.2.2 2020-11-01
 
-# These are being deferred until after 4.0.2 to avoid blocking the release.
+# These are being deferred until after 4.0.4 to avoid blocking the release.
 crate_time 0.1.44 2021-01-20
 crate_redox_users 0.3.5 2021-01-20
 
